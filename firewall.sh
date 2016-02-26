@@ -1,5 +1,15 @@
 #!/bin/sh
 
+### BEGIN INIT INFO
+# Provides:          firewall.sh
+# Required-Start:    $syslog $network
+# Required-Stop:     $syslog $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: FireWall
+# Description:       Lancer le FireWall au demarage
+### END INIT INFO
+
 # Initialisation des variables
 
 SSH="22"
