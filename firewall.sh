@@ -83,28 +83,28 @@ fw_start(){
         
         # Configuration Firewall <--> Web (EXTERNE)-------------------------------------------------
         iptables -A INPUT -i $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
-        iptables -A OUTPUT -i $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
+        iptables -A OUTPUT -o $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
         #iptables -A OUTPUT -i $EXTERNE -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
  
         # Autoriser le ping
         iptables -t filter -A INPUT -i $EXTERNE -p icmp -j ACCEPT
-        iptables -t filter -A OUTPUT -i $EXTERNE -p icmp -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p icmp -j ACCEPT
  
         # Autoriser SSH
         iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -i $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
  
         # Autoriser DNS
         iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $DNS_PORT -j ACCEPT
         iptables -t filter -A INPUT -i $EXTERNE -p udp --dport $DNS_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -i $EXTERNE -p tcp --dport $DNS_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -i $EXTERNE -p udp --dport $DNS_PORT -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $DNS_PORT -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p udp --dport $DNS_PORT -j ACCEPT
         
         # Autoriser HTTP et HTTPS
         iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTP_PORT -j ACCEPT
         iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTPS_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -i $EXTERNE -p tcp --dport $HTTP_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -i $EXTERNE -p tcp --dport $HTTPS_PORT -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTP_PORT -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTPS_PORT -j ACCEPT
 }
  
 fw_stop(){
@@ -152,10 +152,10 @@ fw_stop(){
         
         #Regle pour garder SSH
         iptables -A INPUT -i $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
-        iptables -A OUTPUT -i $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
+        iptables -A OUTPUT -o $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
         # Autoriser SSH
         iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -i $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
 }
  
 case "$1" in
