@@ -114,7 +114,7 @@ fw_stop(){
         iptables -t mangle      -F
         iptables -t filter      -X
  
-        # Interdire toutes connexions entrantes et sortantes
+        # Autoriser toutes connexions entrantes et sortantes
         iptables -t filter      -P INPUT ACCEPT
         iptables -t filter      -P FORWARD ACCEPT
         iptables -t filter      -P OUTPUT ACCEPT
@@ -129,7 +129,7 @@ fw_stop(){
         echo 0 > /proc/sys/net/ipv4/tcp_syncookies
 }
 
-fw_stop(){
+fw_pause(){
         # Vidage des tables et des regles personnelles
         iptables -t filter      -F
         iptables -t nat         -F
@@ -171,7 +171,7 @@ case "$1" in
                 ;;
         pause)
                 echo -n "Firewall PAUSE"
-                fw_stop
+                fw_pause
                 echo "Firewall [PAUSE]"
                 ;;                
         *)
