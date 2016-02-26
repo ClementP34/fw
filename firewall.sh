@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          firewall.sh
+# Provides:          firewall-gq
 # Required-Start:    $syslog $network
 # Required-Stop:     $syslog $network
 # Default-Start:     2 3 4 5
@@ -21,8 +21,8 @@ HTTP="80"
 HTTPS="443"
 WEBMIN="10000"
 
-INTERNE="eth0"
-EXTERNE="eth1"
+INTERNE="eth1"
+EXTERNE="eth0"
 
 # Régles
  
@@ -61,6 +61,10 @@ fw_start(){
         iptables -t filter      -P FORWARD DROP
         iptables -t filter      -P OUTPUT DROP
         
+        # Autoriser le ping
+        iptables -t filter -A INPUT -i $EXTERNE -p icmp -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p icmp -j ACCEPT
+        
         # Activation du postrouting
         iptables -t nat -A POSTROUTING -o $EXTERNE -j MASQUERADE
         
@@ -78,6 +82,7 @@ fw_start(){
         iptables -A OUTPUT -o $INTERNE -m state --state ESTABLISHED,RELATED -j ACCEPT
         #iptables -A OUTPUT -o $INTERNE -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
         
+        # Autoriser SSH
         iptables -t filter -A INPUT -i $INTERNE -p tcp --dport $SSH -j ACCEPT
         iptables -t filter -A OUTPUT -o $INTERNE -p tcp --sport $SSH -j ACCEPT
         
@@ -86,25 +91,21 @@ fw_start(){
         iptables -A OUTPUT -o $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
         #iptables -A OUTPUT -i $EXTERNE -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
  
-        # Autoriser le ping
-        iptables -t filter -A INPUT -i $EXTERNE -p icmp -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p icmp -j ACCEPT
- 
         # Autoriser SSH
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
+        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH -j ACCEPT
  
         # Autoriser DNS
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $DNS_PORT -j ACCEPT
-        iptables -t filter -A INPUT -i $EXTERNE -p udp --dport $DNS_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $DNS_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p udp --dport $DNS_PORT -j ACCEPT
+        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $DNS -j ACCEPT
+        iptables -t filter -A INPUT -i $EXTERNE -p udp --dport $DNS -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $DNS -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p udp --dport $DNS -j ACCEPT
         
         # Autoriser HTTP et HTTPS
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTP_PORT -j ACCEPT
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTPS_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTP_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTPS_PORT -j ACCEPT
+        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTP -j ACCEPT
+        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTPS -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTP -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTPS -j ACCEPT
 }
  
 fw_stop(){
@@ -154,8 +155,8 @@ fw_pause(){
         iptables -A INPUT -i $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
         iptables -A OUTPUT -o $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
         # Autoriser SSH
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH_PORT -j ACCEPT
+        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH -j ACCEPT
+        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH -j ACCEPT
 }
  
 case "$1" in
