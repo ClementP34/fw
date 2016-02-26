@@ -96,14 +96,14 @@ fw_start(){
         iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH -j ACCEPT
  
         # Autoriser DNS
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $DNS -j ACCEPT
-        iptables -t filter -A INPUT -i $EXTERNE -p udp --dport $DNS -j ACCEPT
+        #iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $DNS -j ACCEPT
+        #iptables -t filter -A INPUT -i $EXTERNE -p udp --dport $DNS -j ACCEPT
         iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $DNS -j ACCEPT
         iptables -t filter -A OUTPUT -o $EXTERNE -p udp --dport $DNS -j ACCEPT
         
         # Autoriser HTTP et HTTPS
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTP -j ACCEPT
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTPS -j ACCEPT
+        #iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTP -j ACCEPT
+        #iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTPS -j ACCEPT
         iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTP -j ACCEPT
         iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTPS -j ACCEPT
 }
