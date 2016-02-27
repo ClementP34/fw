@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 # Initialisation des variables
-
+#Ports
 SSH="22"
 FTP="21"
 DNS="53"
@@ -21,13 +21,14 @@ HTTP="80"
 HTTPS="443"
 WEBMIN="10000"
 
-INTERNE="eth1"
-EXTERNE="eth0"
+#Interfaces
+ETH_LOCAL="eth1"
+ETH_INTERNET="eth0"
+ETH_DMZ=""
 
 # Régles
  
 fw_start(){
-        
         # activer le forward
         echo 1 > /proc/sys/net/ipv4/ip_forward
         
@@ -62,50 +63,60 @@ fw_start(){
         iptables -t filter      -P OUTPUT DROP
         
         # Autoriser le ping
-        iptables -t filter -A INPUT -i $EXTERNE -p icmp -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p icmp -j ACCEPT
+        iptables -t filter -A INPUT -p icmp -j ACCEPT
+        iptables -t filter -A OUTPUT -p icmp -j ACCEPT
         
         # Activation du postrouting
-        iptables -t nat -A POSTROUTING -o $EXTERNE -j MASQUERADE
+        iptables -t nat -A POSTROUTING -o $ETH_INTERNET -j MASQUERADE
         
         # Loopback
         iptables -t filter -A INPUT -i lo -s 127.0.0.0/8 -d 127.0.0.0/8 -j ACCEPT
         iptables -t filter -A OUTPUT -o lo -s 127.0.0.0/8 -d 127.0.0.0/8 -j ACCEPT
         
         # INTERNE <--> EXTERNE (Forward)---------------------------------------------------------------
-        iptables -A FORWARD -i $EXTERNE -o $INTERNE -m state --state ESTABLISHED,RELATED -j ACCEPT
-        iptables -A FORWARD -i $INTERNE -o $EXTERNE -m state --state ESTABLISHED,RELATED -j ACCEPT
-        #iptables -A FORWARD -i $INTERNE -o $EXTERNE -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT   
+        iptables -A FORWARD -i $ETH_INTERNET -o $ETH_LOCAL -m state --state ESTABLISHED,RELATED -j ACCEPT
+        iptables -A FORWARD -i $ETH_LOCAL -o $ETH_INTERNET -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+        #Ping
+        iptables -A FORWARD -i $ETH_LOCAL -o $ETH_INTERNET -p icmp -j ACCEPT
+        #HTTP/HTTPS
+        iptables -A FORWARD -i $ETH_LOCAL -o $ETH_INTERNET -p tcp --dport $HTTP -j ACCEPT
+        iptables -A FORWARD -i $ETH_LOCAL -o $ETH_INTERNET -p tcp --dport $HTTPS -j ACCEPT
+        #DNS
+        iptables -A FORWARD -i $ETH_LOCAL -o $ETH_INTERNET -p tcp --dport $DNS -j ACCEPT
+        iptables -A FORWARD -i $ETH_LOCAL -o $ETH_INTERNET -p udp --dport $DNS -j ACCEPT
+
+        #iptables -A FORWARD -i $ETH_LOCAL -o $ETH_INTERNET -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT   
         
         # Firewall <--> reseau local----------------------------------------------------------------
-        iptables -A INPUT  -i $INTERNE -m state --state ESTABLISHED,RELATED -j ACCEPT
-        iptables -A OUTPUT -o $INTERNE -m state --state ESTABLISHED,RELATED -j ACCEPT
-        #iptables -A OUTPUT -o $INTERNE -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+        iptables -A INPUT  -i $ETH_LOCAL -m state --state ESTABLISHED,RELATED -j ACCEPT
+        iptables -A OUTPUT -o $ETH_LOCAL -m state --state ESTABLISHED,RELATED -j ACCEPT
+        #iptables -A OUTPUT -o $ETH_LOCAL -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
         
         # Autoriser SSH
-        iptables -t filter -A INPUT -i $INTERNE -p tcp --dport $SSH -j ACCEPT
-        iptables -t filter -A OUTPUT -o $INTERNE -p tcp --sport $SSH -j ACCEPT
+        iptables -t filter -A INPUT -i $ETH_LOCAL -p tcp --dport $SSH -j ACCEPT
+        iptables -t filter -A OUTPUT -o $ETH_LOCAL -p tcp --sport $SSH -j ACCEPT
         
         # Configuration Firewall <--> Web (EXTERNE)-------------------------------------------------
-        iptables -A INPUT -i $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
-        iptables -A OUTPUT -o $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
-        #iptables -A OUTPUT -i $EXTERNE -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
+        iptables -A INPUT -i $ETH_INTERNET -m state --state RELATED,ESTABLISHED -j ACCEPT
+        iptables -A OUTPUT -o $ETH_INTERNET -m state --state RELATED,ESTABLISHED -j ACCEPT
+        #iptables -A OUTPUT -i $ETH_INTERNET -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
  
         # Autoriser SSH
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH -j ACCEPT
+        iptables -t filter -A INPUT -i $ETH_INTERNET -p tcp --dport $SSH -j ACCEPT
+        iptables -t filter -A OUTPUT -o $ETH_INTERNET -p tcp --dport $SSH -j ACCEPT
  
         # Autoriser DNS
-        #iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $DNS -j ACCEPT
-        #iptables -t filter -A INPUT -i $EXTERNE -p udp --dport $DNS -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $DNS -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p udp --dport $DNS -j ACCEPT
+#        iptables -t filter -A INPUT -i $ETH_INTERNET -p tcp --dport $DNS -j ACCEPT
+#        iptables -t filter -A INPUT -i $ETH_INTERNET -p udp --dport $DNS -j ACCEPT
+        iptables -t filter -A OUTPUT -o $ETH_INTERNET -p tcp --dport $DNS -j ACCEPT
+        iptables -t filter -A OUTPUT -o $ETH_INTERNET -p udp --dport $DNS -j ACCEPT
         
         # Autoriser HTTP et HTTPS
-        #iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTP -j ACCEPT
-        #iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $HTTPS -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTP -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $HTTPS -j ACCEPT
+#        iptables -t filter -A INPUT -i $ETH_INTERNET -p tcp --dport $HTTP -j ACCEPT
+#        iptables -t filter -A INPUT -i $ETH_INTERNET -p tcp --dport $HTTPS -j ACCEPT
+        iptables -t filter -A OUTPUT -o $ETH_INTERNET -p tcp --dport $HTTP -j ACCEPT
+        iptables -t filter -A OUTPUT -o $ETH_INTERNET -p tcp --dport $HTTPS -j ACCEPT
 }
  
 fw_stop(){
@@ -152,11 +163,11 @@ fw_pause(){
         echo 0 > /proc/sys/net/ipv4/tcp_syncookies
         
         #Regle pour garder SSH
-        iptables -A INPUT -i $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
-        iptables -A OUTPUT -o $EXTERNE -m state --state RELATED,ESTABLISHED -j ACCEPT
+        iptables -A INPUT -i $ETH_INTERNET -m state --state RELATED,ESTABLISHED -j ACCEPT
+        iptables -A OUTPUT -o $ETH_INTERNET -m state --state RELATED,ESTABLISHED -j ACCEPT
         # Autoriser SSH
-        iptables -t filter -A INPUT -i $EXTERNE -p tcp --dport $SSH -j ACCEPT
-        iptables -t filter -A OUTPUT -o $EXTERNE -p tcp --dport $SSH -j ACCEPT
+        iptables -t filter -A INPUT -i $ETH_INTERNET -p tcp --dport $SSH -j ACCEPT
+        iptables -t filter -A OUTPUT -o $ETH_INTERNET -p tcp --dport $SSH -j ACCEPT
 }
  
 case "$1" in
@@ -181,4 +192,4 @@ case "$1" in
                 ;;
 esac
  
-exit 0
+exit 0 
