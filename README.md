@@ -2,7 +2,8 @@
 
 Firewall iptables en chantier.
 
-Je ne l'ai pas encore testé, il y a surement des bugs.
+Il Fonctionne pas trop mal. Il y a surement des améliorations à avoir.
+Le Port Forwarding est en cours.
 
 Pour l'installer :
 * Copier dans "/etc/init.d/firewall.sh"
